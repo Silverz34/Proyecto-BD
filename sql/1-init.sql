@@ -16,7 +16,9 @@ CREATE TABLE area (
 	id_sucursal UUID NOT NULL REFERENCES sucursal(id),
 	nombre VARCHAR(64) NOT NULL UNIQUE,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	nombre VARCHAR(64) NOT NULL,
+	modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	UNIQUE (id_sucursal, nombre)
 );
 
 CREATE TABLE usuario (
@@ -24,9 +26,9 @@ CREATE TABLE usuario (
 	id_rol INTEGER NOT NULL REFERENCES rol(id),
 	nombre VARCHAR(64) UNIQUE NOT NULL,
 	correo VARCHAR(64) NOT NULL UNIQUE CHECK (correo ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
-	telefono VARCHAR(9) CHECK (telefono ~ '^[0-9]{10}$'),
+	telefono VARCHAR(10) CHECK (telefono ~ '^[0-9]{10}$'),
 	salario NUMERIC CHECK (salario > 0.0),
-	estado VARCHAR(8) NOT NULL DEFAULT 'ACTIVO' CHECK (estado in ('ACTIVO', 'INACTIVO')),
+	estado VARCHAR(8) NOT NULL DEFAULT 'ACTIVO' CHECK (estado IN ('ACTIVO', 'BAJA', 'PAUSADO')),
 	id_sucursal UUID REFERENCES sucursal(id),
 	id_area UUID REFERENCES area(id),
 	supervisor BOOLEAN,
