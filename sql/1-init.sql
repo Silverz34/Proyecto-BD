@@ -24,9 +24,10 @@ CREATE TABLE area (
 CREATE TABLE usuario (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	id_rol INTEGER NOT NULL REFERENCES rol(id),
-	nombre VARCHAR(64) UNIQUE NOT NULL,
+	nombre VARCHAR(64) NOT NULL UNIQUE CHECK (TRIM(nombre) <> ''),
 	correo VARCHAR(64) NOT NULL UNIQUE CHECK (correo ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
-	telefono VARCHAR(10) CHECK (telefono ~ '^[0-9]{10}$'),
+	telefono VARCHAR(10) NOT NULL CHECK (telefono ~ '^[0-9]{10}$'),
+	contrasena VARCHAR(12) NOT NULL CHECK (contrasena ~ '^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,12}$'),
 	salario NUMERIC CHECK (salario > 0.0),
 	estado VARCHAR(8) NOT NULL DEFAULT 'ACTIVO' CHECK (estado IN ('ACTIVO', 'BAJA', 'PAUSADO')),
 	id_sucursal UUID REFERENCES sucursal(id),
