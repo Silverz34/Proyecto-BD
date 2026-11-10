@@ -1,4 +1,5 @@
 
+-- ==== PERSONAL DE LA EMPRESA ====
 -- Usuarios con rol, sucursal y área (sin salario). El empleado hereda la sucursal de su área.
 CREATE VIEW v_usuario_detalle WITH (security_invoker = true) AS
 SELECT u.id, u.nombre, u.correo, u.telefono, u.estado, u.supervisor,
@@ -17,6 +18,9 @@ SELECT id, nombre, correo, telefono, estado, supervisor,
        id_area, area, id_sucursal, sucursal
 FROM v_usuario_detalle
 WHERE id_area IS NOT NULL;
+
+
+-- ==== PARA VENTAS DE LA EMPRESA ====
 
 -- Renglones de una venta con su concepto y subtotal
 CREATE VIEW v_detalle_venta WITH (security_invoker = true) AS
@@ -48,6 +52,9 @@ SELECT id_sucursal, sucursal, estado,
        SUM(total) AS monto
 FROM v_venta_resumen
 GROUP BY id_sucursal, sucursal, estado;
+
+
+ -- ==== PARA FINANZAS ====
 
 -- Movimientos internos con su tipo (contaduría)
 CREATE VIEW v_movimiento_detalle WITH (security_invoker = true) AS
