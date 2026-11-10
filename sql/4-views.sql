@@ -26,14 +26,16 @@ JOIN sucursal s ON s.id = a.id_sucursal;
 
 -- ==== PARA VENTAS DE LA EMPRESA ====
 
--- Renglones de una venta con su concepto y subtotal
+-- Renglones de una venta con su concepto, subtotal y descripcion (x sucursal).
 CREATE VIEW v_detalle_venta WITH (security_invoker = true) AS
-SELECT dv.id, dv.id_venta,
+SELECT dv.id, dv.id_venta, v.id_sucursal, dv.id_servicio, dv.id_paquete,
        COALESCE(s.nombre, p.nombre) AS concepto,
+       COALESCE(s.descripcion, p.descripcion) AS descripcion,
        CASE WHEN dv.id_servicio IS NOT NULL THEN 'SERVICIO' ELSE 'PAQUETE' END AS tipo,
        dv.cantidad, dv.precio,
        dv.cantidad * dv.precio AS subtotal
 FROM detalles_venta dv
+JOIN venta v ON v.id = dv.id_venta
 LEFT JOIN servicio s ON s.id = dv.id_servicio
 LEFT JOIN paquete p ON p.id = dv.id_paquete;
 
