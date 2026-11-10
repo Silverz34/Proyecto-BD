@@ -1,8 +1,9 @@
 
 -- ==== PERSONAL DE LA EMPRESA ====
--- Usuarios con rol, sucursal y área (sin salario). El empleado hereda la sucursal de su área.
+
+-- Usuarios con rol, sucursal y área (gerentes, supervisor de area y empleados normales)
 CREATE VIEW v_usuario_detalle WITH (security_invoker = true) AS
-SELECT u.id, u.nombre, u.correo, u.telefono, u.estado, u.supervisor,
+SELECT u.id, u.nombre, u.correo, u.telefono, u.salario, u.estado, u.supervisor,
        r.nombre AS rol,
        COALESCE(u.id_sucursal, a.id_sucursal) AS id_sucursal,
        s.nombre AS sucursal,
@@ -10,14 +11,17 @@ SELECT u.id, u.nombre, u.correo, u.telefono, u.estado, u.supervisor,
 FROM usuario u
 JOIN rol r ON r.id = u.id_rol
 LEFT JOIN area a ON a.id = u.id_area
-LEFT JOIN sucursal s ON s.id = COALESCE(u.id_sucursal, a.id_sucursal);
+LEFT JOIN sucursal s ON s.id = COALESCE(u.id_sucursal, a.id_sucursal)
+WHERE r.nombre <> 'CLIENTE';
 
--- Empleados por área (supervisor y RRHH)
+-- Empleados por área
 CREATE VIEW v_empleados_area WITH (security_invoker = true) AS
-SELECT id, nombre, correo, telefono, estado, supervisor,
-       id_area, area, id_sucursal, sucursal
-FROM v_usuario_detalle
-WHERE id_area IS NOT NULL;
+SELECT u.id, u.nombre, u.correo, u.telefono, u.estado, u.supervisor,
+      u.id_area, a.nombre AS area,
+      a.id_sucursal, s.nombre As sucursal
+FROM usuario u
+JOIN area a ON a.id = uu.id_area
+JOIN sucursal s ON s.id = a.id_sucursal;
 
 
 -- ==== PARA VENTAS DE LA EMPRESA ====
@@ -44,6 +48,16 @@ JOIN sucursal s ON s.id = v.id_sucursal
 JOIN usuario c ON c.id = v.id_cliente
 LEFT JOIN detalles_venta dv ON dv.id_venta = v.id
 GROUP BY v.id, s.nombre, c.nombre;
+
+-- Para datos de contacto del cliente (asi no expone el salario)
+CREATE VIEW v_cliente WITH(security_invoker = true) AS
+SELECT u.id, u.nombre, u.correo, u.telefono, u.estado
+FROM usuario u
+JOIN rol r ON r.id = u.id_rol
+WHERE r.nombre = 'CLIENTE';
+
+
+
 
 -- Ventas por sucursal y estado (gerente y CEO)
 CREATE VIEW v_ventas_sucursal WITH (security_invoker = true) AS
