@@ -16,7 +16,6 @@ CREATE TABLE area (
 	id_sucursal UUID NOT NULL REFERENCES sucursal(id),
 	nombre VARCHAR(64) NOT NULL UNIQUE,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	nombre VARCHAR(64) NOT NULL,
 	modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	UNIQUE (id_sucursal, nombre)
 );
