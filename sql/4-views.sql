@@ -7,7 +7,7 @@ SELECT u.id, u.nombre, u.correo, u.telefono, u.salario, u.estado, u.supervisor,
        r.nombre AS rol,
        COALESCE(u.id_sucursal, a.id_sucursal) AS id_sucursal,
        s.nombre AS sucursal,
-       u.id_area, a.nombre AS area
+       a.nombre AS area
 FROM usuario u
 JOIN rol r ON r.id = u.id_rol
 LEFT JOIN area a ON a.id = u.id_area
@@ -17,8 +17,8 @@ WHERE r.nombre <> 'CLIENTE';
 -- Empleados por área
 CREATE VIEW v_empleados_area WITH (security_invoker = true) AS
 SELECT u.id, u.nombre, u.correo, u.telefono, u.estado, u.supervisor,
-      u.id_area, a.nombre AS area,
-      a.id_sucursal, s.nombre As sucursal
+      a.nombre AS area,
+      s.nombre As sucursal
 FROM usuario u
 JOIN area a ON a.id = uu.id_area
 JOIN sucursal s ON s.id = a.id_sucursal;
@@ -43,7 +43,7 @@ LEFT JOIN paquete p ON p.id = dv.id_paquete;
 CREATE VIEW v_venta_resumen WITH (security_invoker = true) AS
 SELECT v.id, v.created_at, v.estado,
        v.id_sucursal, s.nombre AS sucursal,
-       v.id_cliente, c.nombre AS cliente,
+       c.nombre AS cliente,
        COALESCE(SUM(dv.cantidad * dv.precio), 0) AS total
 FROM venta v
 JOIN sucursal s ON s.id = v.id_sucursal
