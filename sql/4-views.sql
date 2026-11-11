@@ -23,6 +23,23 @@ FROM usuario u
 JOIN area a ON a.id = uu.id_area
 JOIN sucursal s ON s.id = a.id_sucursal;
 
+-- Areas con su sucursal y supervisor xd
+CREATE VIEW v_area WITH (security_invoker = true) AS
+SELECT a.id, a.nombre,
+    a.id_sucursal, s.nombre AS sucursal,
+    sup.id AS id_supervisor,
+    sup.nombre AS supervisor
+FROM area a
+JOIN sucursal s ON s.id = a.id_sucursal
+LEFT JOIN usuario sup ON sup.id_area = a.id AND sup.supervisor IS TRUE;
+
+-- Sucursal con su gente
+CREATE VIEW v_sucursal WITH (security_invoker= true) AS
+SELECT s.id, s.nombre, s.ubicacion,
+    g.id AS id_gerente, g.nombre AS gerente
+FROM sucursal s
+LEFT JOIN usuario g ON g.id_sucursal = s.id;
+
 
 -- ==== PARA VENTAS DE LA EMPRESA ====
 
@@ -58,9 +75,6 @@ FROM usuario u
 JOIN rol r ON r.id = u.id_rol
 WHERE r.nombre = 'CLIENTE';
 
-
-
-
 -- Ventas por sucursal y estado (gerente y CEO)
 CREATE VIEW v_ventas_sucursal WITH (security_invoker = true) AS
 SELECT id_sucursal, sucursal, estado,
@@ -68,6 +82,16 @@ SELECT id_sucursal, sucursal, estado,
        SUM(total) AS monto
 FROM v_venta_resumen
 GROUP BY id_sucursal, sucursal, estado;
+
+-- Srvicios que componen cada paquete
+CREATE VIEW v_paquete_contenido WITH (security_invoker = true) AS
+SELECT p.id AS id_paquete, p.nombre AS paquete,
+       p.descripcion AS descripcion_paquete, p.precio AS precio_paquete,
+       s.id AS id_servicio, s.nombre AS servicio,
+       s.descripcion AS descripcion_servicio, s.precio AS precio_servicio
+FROM paquete p
+LEFT JOIN contenido_paquete cp ON cp.id_paquete = p.id
+LEFT JOIN servicio s ON s.id = cp.id_servicio;
 
 
  -- ==== PARA FINANZAS ====
