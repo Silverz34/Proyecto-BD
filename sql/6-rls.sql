@@ -76,7 +76,7 @@ CREATE POLICY usuario_estado_supervisor ON usuario FOR UPDATE TO rol_empleado
 	USING (es_supervisor() AND id_area = area_actual() AND id <> usuario_actual())
 	WITH CHECK (es_supervisor() AND id_area = area_actual());
 
--- 5. Ventas
+-- Ventas
 CREATE POLICY venta_sucursal ON venta FOR SELECT TO rol_gerente, rol_ventas
 	USING (id_sucursal = sucursal_actual());
 
@@ -89,7 +89,7 @@ CREATE POLICY servicio_catalogo ON servicio FOR SELECT TO rol_gerente, rol_venta
 CREATE POLICY paquete_catalogo ON paquete FOR SELECT TO rol_gerente, rol_ventas USING (true);
 CREATE POLICY contenido_paquete_catalogo ON contenido_paquete FOR SELECT TO rol_gerente, rol_ventas USING (true);
 
--- 6. Movimientos
+-- Movimientos
 CREATE POLICY movimiento_catalogo_lectura ON movimiento_catalogo FOR SELECT
 	TO rol_gerente, rol_contaduria USING (true);
 
@@ -100,4 +100,59 @@ CREATE POLICY movimiento_sucursal ON movimiento_interno FOR SELECT
 -- contaduría edita solo de su sucursal (las columnas las limita el GRANT)
 CREATE POLICY movimiento_editar_contaduria ON movimiento_interno FOR UPDATE TO rol_contaduria
 	USING (sucursal_de_area(id_area) = sucursal_actual())
+	WITH CHECK (sucursal_de_area(id_area) = sucursal_actual());
+
+
+
+
+-- ==== POLÍTICAS DE ESCRITURA ====
+
+-- RRHH: alta y edición de personal de su sucursal, solo con rol de personal
+CREATE POLICY usuario_alta_rrhh ON usuario FOR INSERT TO rol_rrhh
+	WITH CHECK (
+		sucursal_de_area(id_area) = sucursal_actual()
+		AND id_rol IN (SELECT id FROM rol WHERE nombre IN ('EMPLEADO', 'RRHH', 'CONTADURIA', 'VENTAS'))
+	);
+
+CREATE POLICY usuario_edicion_rrhh ON usuario FOR UPDATE TO rol_rrhh
+	USING (id_area IS NOT NULL AND sucursal_de_area(id_area) = sucursal_actual() AND id <> usuario_actual())
+	WITH CHECK (
+		sucursal_de_area(id_area) = sucursal_actual()
+		AND id_rol IN (SELECT id FROM rol WHERE nombre IN ('EMPLEADO', 'RRHH', 'CONTADURIA', 'VENTAS'))
+	);
+
+-- Ventas: alta y edición de clientes (solo filas con rol CLIENTE)
+CREATE POLICY usuario_alta_cliente ON usuario FOR INSERT TO rol_ventas
+	WITH CHECK (id_rol IN (SELECT id FROM rol WHERE nombre = 'CLIENTE'));
+
+CREATE POLICY usuario_edicion_cliente ON usuario FOR UPDATE TO rol_ventas
+	USING (id_rol IN (SELECT id FROM rol WHERE nombre = 'CLIENTE'))
+	WITH CHECK (id_rol IN (SELECT id FROM rol WHERE nombre = 'CLIENTE'));
+
+-- Ventas: crear ventas en su sucursal
+CREATE POLICY venta_alta ON venta FOR INSERT TO rol_ventas
+	WITH CHECK (id_sucursal = sucursal_actual());
+
+-- Ventas solo toca las pendientes; el gerente cualquiera de su sucursal
+CREATE POLICY venta_estado_ventas ON venta FOR UPDATE TO rol_ventas
+	USING (id_sucursal = sucursal_actual() AND estado = 'PENDIENTE')
+	WITH CHECK (id_sucursal = sucursal_actual());
+
+CREATE POLICY venta_estado_gerente ON venta FOR UPDATE TO rol_gerente
+	USING (id_sucursal = sucursal_actual())
+	WITH CHECK (id_sucursal = sucursal_actual());
+
+-- Renglones: solo mientras la venta esté PENDIENTE (el EXISTS ya respeta la sucursal)
+CREATE POLICY detalles_venta_alta ON detalles_venta FOR INSERT TO rol_ventas
+	WITH CHECK (EXISTS (SELECT 1 FROM venta
+		WHERE venta.id = detalles_venta.id_venta AND venta.estado = 'PENDIENTE'));
+
+CREATE POLICY detalles_venta_edicion ON detalles_venta FOR UPDATE TO rol_ventas
+	USING (EXISTS (SELECT 1 FROM venta
+		WHERE venta.id = detalles_venta.id_venta AND venta.estado = 'PENDIENTE'))
+	WITH CHECK (EXISTS (SELECT 1 FROM venta
+		WHERE venta.id = detalles_venta.id_venta AND venta.estado = 'PENDIENTE'));
+
+-- Contaduría: registrar movimientos de su sucursal
+CREATE POLICY movimiento_alta_contaduria ON movimiento_interno FOR INSERT TO rol_contaduria
 	WITH CHECK (sucursal_de_area(id_area) = sucursal_actual());
