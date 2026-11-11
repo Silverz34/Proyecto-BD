@@ -46,12 +46,12 @@ GRANT UPDATE (cantidad) ON detalles_venta TO rol_ventas;
 -- contaduria (solo edita costo y motivo)
 GRANT SELECT ON movimiento_interno, movimiento_catalogo TO rol_contaduria;
 GRANT UPDATE (costo, motivo) ON movimiento_interno TO rol_contaduria;
-GRANT SELECT ON v_movimiento_detalle, v_movimiento_area TO rol_contaduria;
+GRANT SELECT ON v_movimiento_detalle, v_movimientos_area TO rol_contaduria;
 GRANT INSERT (id_area, id_movimiento, costo, motivo) ON movimiento_interno TO rol_contaduria;
 
 --gerente
 GRANT SELECT ON venta, detalles_venta, servicio, paquete, contenido_paquete, movimiento_interno, movimiento_catalogo TO rol_gerente;
-GRANT SELECT ON v_sucursal, v_venta_resumen, v_ventas_sucursal, v_detalle_venta, v_paquete_contenido, v_movimiento_detalle, v_movimiento_area TO rol_gerente;
+GRANT SELECT ON v_sucursal, v_venta_resumen, v_ventas_sucursal, v_detalle_venta, v_paquete_contenido, v_movimiento_detalle, v_movimientos_area TO rol_gerente;
 
 --Ceo
 GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO rol_ceo;
