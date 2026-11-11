@@ -20,7 +20,7 @@ SELECT u.id, u.nombre, u.correo, u.telefono, u.estado, u.supervisor,
       a.nombre AS area,
       s.nombre As sucursal
 FROM usuario u
-JOIN area a ON a.id = uu.id_area
+JOIN area a ON a.id = u.id_area
 JOIN sucursal s ON s.id = a.id_sucursal;
 
 
