@@ -21,20 +21,33 @@ GRANT USAGE ON SCHEMA public TO rol_empleado;
 GRANT SELECT ON sucursal, area, rol TO rol_empleado;
 GRANT SELECT (id, id_rol, nombre, correo, telefono, estado, id_sucursal, id_area, supervisor) ON usuario TO rol_empleado;
 GRANT UPDATE (estado) ON usuario TO rol_empleado;
-GRANT SELECT ON v_empleados_area, v_area, TO rol_empleado;
+GRANT SELECT ON v_empleados_area, v_area TO rol_empleado;
 
 -- rol_rrhh
 GRANT SELECT (salario) ON usuario TO rol_rrhh;
 GRANT SELECT ON v_usuario_detalle, v_sucursal TO rol_rrhh;
+GRANT INSERT (id_rol, nombre, correo, telefono, salario, estado, id_area, supervisor)
+  ON usuario TO rol_rrhh;
+GRANT UPDATE (id_rol, nombre, correo, telefono, salario, estado, id_area, supervisor)
+  ON usuario TO rol_rrhh;
+
 
 --ventas o atencion al cliente
 GRANT SELECT ON venta, detalles_venta, servicio, paquete, contenido_paquete TO rol_ventas;
 GRANT SELECT ON v_sucursal, v_cliente, v_venta_resumen,v_detalle_venta, v_paquete_contenido TO rol_ventas;
+GRANT INSERT (id_rol, nombre, correo, telefono) ON usuario TO rol_ventas;
+GRANT UPDATE (nombre, correo, telefono, estado) ON usuario TO rol_ventas;
+GRANT INSERT (id_cliente, id_sucursal) ON venta TO rol_ventas;
+GRANT UPDATE (estado) ON venta TO rol_ventas, rol_gerente;
+GRANT INSERT (id_venta, id_servicio, id_paquete, cantidad) ON detalles_venta TO rol_ventas;
+GRANT UPDATE (cantidad) ON detalles_venta TO rol_ventas;
+
 
 -- contaduria (solo edita costo y motivo)
 GRANT SELECT ON movimiento_interno, movimiento_catalogo TO rol_contaduria;
 GRANT UPDATE (costo, motivo) ON movimiento_interno TO rol_contaduria;
 GRANT SELECT ON v_movimiento_detalle, v_movimiento_area TO rol_contaduria;
+GRANT INSERT (id_area, id_movimiento, costo, motivo) ON movimiento_interno TO rol_contaduria;
 
 --gerente
 GRANT SELECT ON venta, detalles_venta, servicio, paquete, contenido_paquete, movimiento_interno, movimiento_catalogo TO rol_gerente;

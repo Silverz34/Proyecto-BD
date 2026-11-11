@@ -16,7 +16,6 @@ CREATE TABLE area (
 	id_sucursal UUID NOT NULL REFERENCES sucursal(id),
 	nombre VARCHAR(64) NOT NULL UNIQUE,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	nombre VARCHAR(64) NOT NULL,
 	modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	UNIQUE (id_sucursal, nombre)
 );
@@ -27,7 +26,7 @@ CREATE TABLE usuario (
 	nombre VARCHAR(64) NOT NULL UNIQUE CHECK (TRIM(nombre) <> ''),
 	correo VARCHAR(64) NOT NULL UNIQUE CHECK (correo ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
 	telefono VARCHAR(10) NOT NULL CHECK (telefono ~ '^[0-9]{10}$'),
-	contrasena VARCHAR(125) NOT NULL CHECK (TRIM(contrasena) <> '' AND LENGTH(contrasena) >= 8),
+	contrasena VARCHAR(125) CHECK (contrasena IS NULL OR (TRIM(contrasena) <> '' AND LENGTH(contrasena) >= 8)),
 	salario NUMERIC CHECK (salario > 0.0),
 	estado VARCHAR(8) NOT NULL DEFAULT 'ACTIVO' CHECK (estado IN ('ACTIVO', 'BAJA', 'PAUSADO')),
 	id_sucursal UUID REFERENCES sucursal(id),
