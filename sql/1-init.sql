@@ -14,7 +14,7 @@ CREATE TABLE sucursal (
 CREATE TABLE area (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	id_sucursal UUID NOT NULL REFERENCES sucursal(id),
-	nombre VARCHAR(64) NOT NULL,
+	nombre VARCHAR(64) NOT NULL UNIQUE,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	UNIQUE (id_sucursal, nombre)
