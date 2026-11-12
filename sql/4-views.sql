@@ -63,17 +63,19 @@ WHERE r.nombre = 'CLIENTE';
 -- Movimientos internos con su tipo (contaduría)
 CREATE VIEW v_movimiento_detalle WITH (security_invoker = true) AS
 SELECT mi.id, mi.created_at,
-       a.id_sucursal, mi.id_area, a.nombre AS area,
+		s.nombre AS sucursal,
+       a.nombre AS area,
        mc.nombre AS movimiento, mc.tipo,
        mi.costo, mi.motivo
 FROM movimiento_interno mi
 JOIN movimiento_catalogo mc ON mc.id = mi.id_movimiento
-JOIN area a ON a.id = mi.id_area;
+JOIN area a ON a.id = mi.id_area
+JOIN sucursal s ON s.id = a.id_sucursal;
 
 -- Gastos (COMPRA) e ingresos (VENTA) por área
 CREATE VIEW v_movimientos_area WITH (security_invoker = true) AS
-SELECT id_area, area, id_sucursal,
+SELECT area, sucursal,
        COALESCE(SUM(costo) FILTER (WHERE tipo = 'COMPRA'), 0) AS gastos,
        COALESCE(SUM(costo) FILTER (WHERE tipo = 'VENTA'), 0) AS ingresos
 FROM v_movimiento_detalle
-GROUP BY id_area, area, id_sucursal;
+GROUP BY area, sucursal;
