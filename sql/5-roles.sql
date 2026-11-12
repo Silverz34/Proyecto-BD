@@ -34,7 +34,7 @@ GRANT UPDATE (id_rol, nombre, correo, telefono, salario, estado, id_area, superv
 
 --ventas o atencion al cliente
 GRANT SELECT ON venta, detalles_venta, servicio, paquete, contenido_paquete TO rol_ventas;
-GRANT SELECT ON v_sucursal, v_cliente, v_venta_resumen,v_detalle_venta, v_paquete_contenido TO rol_ventas;
+GRANT SELECT ON v_cliente, v_venta_resumen, v_detalle_venta, v_paquete_contenido TO rol_ventas;
 GRANT INSERT (id_rol, nombre, correo, telefono) ON usuario TO rol_ventas;
 GRANT UPDATE (nombre, correo, telefono, estado) ON usuario TO rol_ventas;
 GRANT INSERT (id_cliente, id_sucursal) ON venta TO rol_ventas;
