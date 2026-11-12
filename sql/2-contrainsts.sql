@@ -10,6 +10,7 @@ CREATE INDEX idx_detalles_venta ON detalles_venta(id_venta);
 
 
 -- un solo gerente por sucursal
-CREATE UNIQUE INDEX uq_gerente_sucursal ON usuario(id_sucursal) WHERE id_sucursal IS NOT NULL;
+CREATE UNIQUE INDEX uq_gerente_sucursal ON usuario(id_sucursal)
+WHERE id_sucursal IS NOT NULL AND id_rol = 2;
 -- un solo supervisor por área
 CREATE UNIQUE INDEX uq_supervisor_area ON usuario(id_area) WHERE supervisor IS TRUE;
