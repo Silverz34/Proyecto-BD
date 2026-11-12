@@ -5,7 +5,6 @@
 CREATE VIEW v_usuario_detalle WITH (security_invoker = true) AS
 SELECT u.id, u.nombre, u.correo, u.telefono, u.salario, u.estado, u.supervisor,
        r.nombre AS rol,
-       COALESCE(u.id_sucursal, a.id_sucursal) AS id_sucursal,
        s.nombre AS sucursal,
        a.nombre AS area
 FROM usuario u
@@ -28,7 +27,7 @@ JOIN sucursal s ON s.id = a.id_sucursal;
 
 -- Renglones de una venta con su concepto, subtotal y descripcion (x sucursal).
 CREATE VIEW v_detalle_venta WITH (security_invoker = true) AS
-SELECT dv.id, dv.id_venta, v.id_sucursal, dv.id_servicio, dv.id_paquete,
+SELECT dv.id, dv.id_venta,
        COALESCE(s.nombre, p.nombre) AS concepto,
        COALESCE(s.descripcion, p.descripcion) AS descripcion,
        CASE WHEN dv.id_servicio IS NOT NULL THEN 'SERVICIO' ELSE 'PAQUETE' END AS tipo,
@@ -39,10 +38,10 @@ JOIN venta v ON v.id = dv.id_venta
 LEFT JOIN servicio s ON s.id = dv.id_servicio
 LEFT JOIN paquete p ON p.id = dv.id_paquete;
 
--- Ventas con cliente, sucursal y total (también sirve para el historial de un cliente)
+-- Ventas con cliente, sucursal y total (también sirve para el historial de un cliente) GERENTE Y CEO
 CREATE VIEW v_venta_resumen WITH (security_invoker = true) AS
 SELECT v.id, v.created_at, v.estado,
-       v.id_sucursal, s.nombre AS sucursal,
+       s.nombre AS sucursal,
        c.nombre AS cliente,
        COALESCE(SUM(dv.cantidad * dv.precio), 0) AS total
 FROM venta v
@@ -57,17 +56,6 @@ SELECT u.id, u.nombre, u.correo, u.telefono, u.estado
 FROM usuario u
 JOIN rol r ON r.id = u.id_rol
 WHERE r.nombre = 'CLIENTE';
-
-
-
-
--- Ventas por sucursal y estado (gerente y CEO)
-CREATE VIEW v_ventas_sucursal WITH (security_invoker = true) AS
-SELECT id_sucursal, sucursal, estado,
-       COUNT(*) AS num_ventas,
-       SUM(total) AS monto
-FROM v_venta_resumen
-GROUP BY id_sucursal, sucursal, estado;
 
 
  -- ==== PARA FINANZAS ====
