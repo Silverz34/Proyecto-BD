@@ -22,6 +22,23 @@ FROM usuario u
 JOIN area a ON a.id = u.id_area
 JOIN sucursal s ON s.id = a.id_sucursal;
 
+-- Areas con su sucursal y supervisor xd
+CREATE VIEW v_area WITH (security_invoker = true) AS
+SELECT a.id, a.nombre,
+    a.id_sucursal, s.nombre AS sucursal,
+    sup.id AS id_supervisor,
+    sup.nombre AS supervisor
+FROM area a
+JOIN sucursal s ON s.id = a.id_sucursal
+LEFT JOIN usuario sup ON sup.id_area = a.id AND sup.supervisor IS TRUE;
+
+-- Sucursal con su gente
+CREATE VIEW v_sucursal WITH (security_invoker= true) AS
+SELECT s.id, s.nombre, s.ubicacion,
+    g.id AS id_gerente, g.nombre AS gerente
+FROM sucursal s
+LEFT JOIN usuario g ON g.id_sucursal = s.id;
+
 
 -- ==== PARA VENTAS DE LA EMPRESA ====
 
