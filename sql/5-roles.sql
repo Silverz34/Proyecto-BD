@@ -26,9 +26,9 @@ GRANT SELECT ON v_empleados_area, v_area TO rol_empleado;
 -- rol_rrhh
 GRANT SELECT (salario) ON usuario TO rol_rrhh;
 GRANT SELECT ON v_usuario_detalle, v_sucursal TO rol_rrhh;
-GRANT INSERT (id_rol, nombre, correo, telefono, salario, estado, id_area, supervisor, contrasena)
+GRANT INSERT (id_rol, nombre, correo, telefono, salario, estado, id_area, id_sucursal, supervisor, contrasena)
   ON usuario TO rol_rrhh;
-GRANT UPDATE (id_rol, nombre, correo, telefono, salario, estado, id_area, supervisor)
+GRANT UPDATE (id_rol, nombre, correo, telefono, salario, estado, id_area, id_sucursal, supervisor)
   ON usuario TO rol_rrhh;
 
 
