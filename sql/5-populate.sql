@@ -1,12 +1,12 @@
 -- sacados del gemini, hasta creen que voy a llenar la base a mano
 -- 1. Insertar roles (Con los nombres estrictamente solicitados)
 INSERT INTO rol (id, nombre) VALUES 
-(1, 'administrador'),
-(2, 'gerente'),
-(3, 'supervisor'),
-(4, 'ceo'),
-(5, 'empleado'),
-(6, 'cliente');
+(1, 'ADMINISTRADOR'),
+(2, 'GERENTE'),
+(3, 'SUPERVISOR'),
+(4, 'CEO'),
+(5, 'EMPLEADO'),
+(6, 'CLIENTE');
 
 -- Reiniciar la secuencia de rol si se llegan a insertar más en el futuro
 SELECT setval(pg_get_serial_sequence('rol', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM rol;
