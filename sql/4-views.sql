@@ -96,3 +96,22 @@ SELECT area, sucursal,
        COALESCE(SUM(costo) FILTER (WHERE tipo = 'VENTA'), 0) AS ingresos
 FROM v_movimiento_detalle
 GROUP BY area, sucursal;
+
+-- SUCURSALES
+
+-- Saca cada sucursal con el conteo de áreas que tiene
+CREATE VIEW v_sucursal_area WITH (security_invoker = true) AS
+SELECT
+	s.id, s.nombre, s.ubicacion,
+	COUNT(a.id) AS areas
+FROM sucursal s
+JOIN area a ON s.id = a.id_sucursal
+GROUP BY s.id;
+
+CREATE VIEW v_area_empleado WITH (security_invoker = true) AS
+SELECT
+	a.id, a.nombre,
+	COUNT(u.id) AS empleados
+FROM area a
+JOIN usuario u ON a.id = u.id_area
+GROUP BY a.id;
