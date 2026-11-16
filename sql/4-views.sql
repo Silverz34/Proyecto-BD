@@ -105,13 +105,14 @@ SELECT
 	s.id, s.nombre, s.ubicacion,
 	COUNT(a.id) AS areas
 FROM sucursal s
-JOIN area a ON s.id = a.id_sucursal
+LEFT JOIN area a ON s.id = a.id_sucursal
 GROUP BY s.id;
 
 CREATE VIEW v_area_empleado WITH (security_invoker = true) AS
 SELECT
 	a.id, a.nombre,
-	COUNT(u.id) AS empleados
+	COUNT(u.id) FILTER (WHERE u.supervisor= false) AS empleados,
+	MAX(u.nombre) FILTER (WHERE u.supervisor = true) AS supervisor
 FROM area a
-JOIN usuario u ON a.id = u.id_area
+LEFT JOIN usuario u ON a.id = u.id_area
 GROUP BY a.id;
