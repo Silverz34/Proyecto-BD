@@ -111,8 +111,8 @@ GROUP BY s.id;
 CREATE VIEW v_area_empleado WITH (security_invoker = true) AS
 SELECT
 	a.id, a.nombre,
-	COUNT(u.id) FILTER (WHERE u.supervisor= false) AS empleados,
-	MAX(u.nombre) FILTER (WHERE u.supervisor = true) AS supervisor
+	MAX(u.nombre) FILTER (WHERE u.supervisor = true) AS supervisor,
+	COUNT(u.id) FILTER (WHERE u.supervisor= false) AS empleados
 FROM area a
 LEFT JOIN usuario u ON a.id = u.id_area
 GROUP BY a.id;
