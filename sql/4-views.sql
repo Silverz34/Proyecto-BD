@@ -80,7 +80,7 @@ WHERE r.nombre = 'CLIENTE';
 -- Movimientos internos con su tipo (contaduría)
 CREATE VIEW v_movimiento_detalle WITH (security_invoker = true) AS
 SELECT mi.id, mi.created_at,
-		s.nombre AS sucursal,
+		s.id AS sucursal,
        a.nombre AS area,
        mc.nombre AS movimiento, mc.tipo,
        mi.costo, mi.motivo
@@ -111,8 +111,10 @@ GROUP BY s.id;
 CREATE VIEW v_area_empleado WITH (security_invoker = true) AS
 SELECT
 	a.id, a.nombre,
+	s.id as sucursal,
 	MAX(u.nombre) FILTER (WHERE u.supervisor = true) AS supervisor,
 	COUNT(u.id) FILTER (WHERE u.supervisor= false) AS empleados
 FROM area a
+JOIN sucursal s ON a.id_sucursal = s.id
 LEFT JOIN usuario u ON a.id = u.id_area
-GROUP BY a.id;
+GROUP BY a.id, s.id;
