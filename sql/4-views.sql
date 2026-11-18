@@ -118,3 +118,14 @@ FROM area a
 JOIN sucursal s ON a.id_sucursal = s.id
 LEFT JOIN usuario u ON a.id = u.id_area
 GROUP BY a.id, s.id;
+
+-- PAQUETES Y SERVICIOS
+
+CREATE VIEW v_paquete_servicio WITH (security_invoker = true) AS
+SELECT
+	p.id, p.nombre, p.descripcion, p.precio,
+	COUNT(s.id) AS servicios
+FROM paquete p
+JOIN contenido_paquete c ON p.id = c.id_paquete
+LEFT JOIN servicio s ON c.id_servicio = s.id
+GROUP BY p.id
