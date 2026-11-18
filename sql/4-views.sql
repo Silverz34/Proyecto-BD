@@ -90,6 +90,7 @@ JOIN area a ON a.id = mi.id_area
 JOIN sucursal s ON s.id = a.id_sucursal;
 
 -- Gastos (COMPRA) e ingresos (VENTA) por área
+-- POSIBLEMENTE redundante debido a v_movimiento_detalle
 CREATE VIEW v_movimientos_area WITH (security_invoker = true) AS
 SELECT area, sucursal,
        COALESCE(SUM(costo) FILTER (WHERE tipo = 'COMPRA'), 0) AS gastos,
@@ -128,4 +129,12 @@ SELECT
 FROM paquete p
 JOIN contenido_paquete c ON p.id = c.id_paquete
 LEFT JOIN servicio s ON c.id_servicio = s.id
-GROUP BY p.id
+GROUP BY p.id;
+
+-- Permite filtrar servicios según el paquete al que pertenece
+CREATE VIEW v_contenido_paquete WITH (security_invoker = true) AS
+SELECT
+	s.id, s.nombre, s.descripcion, s.precio, p.id as paquete
+FROM contenido_paquete c
+LEFT JOIN servicio s ON c.id_servicio = s.id
+LEFT JOIN paquete p ON c.id_paquete = p.id;
