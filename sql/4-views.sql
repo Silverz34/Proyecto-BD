@@ -127,7 +127,7 @@ SELECT
 	p.id, p.nombre, p.descripcion, p.precio,
 	COUNT(s.id) AS servicios
 FROM paquete p
-JOIN contenido_paquete c ON p.id = c.id_paquete
+LEFT JOIN contenido_paquete c ON p.id = c.id_paquete
 LEFT JOIN servicio s ON c.id_servicio = s.id
 GROUP BY p.id;
 
