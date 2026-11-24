@@ -13,8 +13,13 @@ CREATE ROLE api_user LOGIN NOINHERIT NOBYPASSRLS;
 GRANT rol_empleado, rol_ventas, rol_rrhh, rol_contaduria, rol_gerente, rol_ceo TO api_user;
 
 -- Cerrar el acceso x defecto de Supabase
-REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon, authenticated;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated;
+DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon, authenticated;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated;
+    END IF;
+END $$;
+
 
 -- BASE: lo que todos pueden usar
 GRANT USAGE ON SCHEMA public TO rol_empleado;
