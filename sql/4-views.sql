@@ -5,9 +5,8 @@
 CREATE VIEW v_usuario_detalle WITH (security_invoker = true) AS
 SELECT u.id, u.nombre, u.correo, u.telefono, u.salario, u.estado, u.supervisor,
        r.nombre AS rol,
-       COALESCE(u.id_sucursal, a.id_sucursal) AS id_sucursal,
        s.nombre AS sucursal,
-       u.id_area, a.nombre AS area
+       a.nombre AS area
 FROM usuario u
 JOIN rol r ON r.id = u.id_rol
 LEFT JOIN area a ON a.id = u.id_area
@@ -17,8 +16,8 @@ WHERE r.nombre <> 'CLIENTE';
 -- Empleados por área
 CREATE VIEW v_empleados_area WITH (security_invoker = true) AS
 SELECT u.id, u.nombre, u.correo, u.telefono, u.estado, u.supervisor,
-      u.id_area, a.nombre AS area,
-      a.id_sucursal, s.nombre As sucursal
+      a.nombre AS area,
+      s.nombre As sucursal
 FROM usuario u
 JOIN area a ON a.id = u.id_area
 JOIN sucursal s ON s.id = a.id_sucursal;
@@ -45,7 +44,7 @@ LEFT JOIN usuario g ON g.id_sucursal = s.id;
 
 -- Renglones de una venta con su concepto, subtotal y descripcion (x sucursal).
 CREATE VIEW v_detalle_venta WITH (security_invoker = true) AS
-SELECT dv.id, dv.id_venta, v.id_sucursal, dv.id_servicio, dv.id_paquete,
+SELECT dv.id, dv.id_venta,
        COALESCE(s.nombre, p.nombre) AS concepto,
        COALESCE(s.descripcion, p.descripcion) AS descripcion,
        CASE WHEN dv.id_servicio IS NOT NULL THEN 'SERVICIO' ELSE 'PAQUETE' END AS tipo,
@@ -56,11 +55,11 @@ JOIN venta v ON v.id = dv.id_venta
 LEFT JOIN servicio s ON s.id = dv.id_servicio
 LEFT JOIN paquete p ON p.id = dv.id_paquete;
 
--- Ventas con cliente, sucursal y total (también sirve para el historial de un cliente)
+-- Ventas con cliente, sucursal y total (también sirve para el historial de un cliente) GERENTE Y CEO
 CREATE VIEW v_venta_resumen WITH (security_invoker = true) AS
 SELECT v.id, v.created_at, v.estado,
-       v.id_sucursal, s.nombre AS sucursal,
-       v.id_cliente, c.nombre AS cliente,
+       s.nombre AS sucursal,
+       c.nombre AS cliente,
        COALESCE(SUM(dv.cantidad * dv.precio), 0) AS total
 FROM venta v
 JOIN sucursal s ON s.id = v.id_sucursal
@@ -75,41 +74,67 @@ FROM usuario u
 JOIN rol r ON r.id = u.id_rol
 WHERE r.nombre = 'CLIENTE';
 
--- Ventas por sucursal y estado (gerente y CEO)
-CREATE VIEW v_ventas_sucursal WITH (security_invoker = true) AS
-SELECT id_sucursal, sucursal, estado,
-       COUNT(*) AS num_ventas,
-       SUM(total) AS monto
-FROM v_venta_resumen
-GROUP BY id_sucursal, sucursal, estado;
-
--- Srvicios que componen cada paquete
-CREATE VIEW v_paquete_contenido WITH (security_invoker = true) AS
-SELECT p.id AS id_paquete, p.nombre AS paquete,
-       p.descripcion AS descripcion_paquete, p.precio AS precio_paquete,
-       s.id AS id_servicio, s.nombre AS servicio,
-       s.descripcion AS descripcion_servicio, s.precio AS precio_servicio
-FROM paquete p
-LEFT JOIN contenido_paquete cp ON cp.id_paquete = p.id
-LEFT JOIN servicio s ON s.id = cp.id_servicio;
-
 
  -- ==== PARA FINANZAS ====
 
 -- Movimientos internos con su tipo (contaduría)
 CREATE VIEW v_movimiento_detalle WITH (security_invoker = true) AS
 SELECT mi.id, mi.created_at,
-       a.id_sucursal, mi.id_area, a.nombre AS area,
+		s.id AS sucursal,
+       a.nombre AS area,
        mc.nombre AS movimiento, mc.tipo,
        mi.costo, mi.motivo
 FROM movimiento_interno mi
 JOIN movimiento_catalogo mc ON mc.id = mi.id_movimiento
-JOIN area a ON a.id = mi.id_area;
+JOIN area a ON a.id = mi.id_area
+JOIN sucursal s ON s.id = a.id_sucursal;
 
 -- Gastos (COMPRA) e ingresos (VENTA) por área
+-- POSIBLEMENTE redundante debido a v_movimiento_detalle
 CREATE VIEW v_movimientos_area WITH (security_invoker = true) AS
-SELECT id_area, area, id_sucursal,
+SELECT area, sucursal,
        COALESCE(SUM(costo) FILTER (WHERE tipo = 'COMPRA'), 0) AS gastos,
        COALESCE(SUM(costo) FILTER (WHERE tipo = 'VENTA'), 0) AS ingresos
 FROM v_movimiento_detalle
-GROUP BY id_area, area, id_sucursal;
+GROUP BY area, sucursal;
+
+-- SUCURSALES
+
+-- Saca cada sucursal con el conteo de áreas que tiene
+CREATE VIEW v_sucursal_area WITH (security_invoker = true) AS
+SELECT
+	s.id, s.nombre, s.ubicacion,
+	COUNT(a.id) AS areas
+FROM sucursal s
+LEFT JOIN area a ON s.id = a.id_sucursal
+GROUP BY s.id;
+
+CREATE VIEW v_area_empleado WITH (security_invoker = true) AS
+SELECT
+	a.id, a.nombre,
+	s.id as sucursal,
+	MAX(u.nombre) FILTER (WHERE u.supervisor = true) AS supervisor,
+	COUNT(u.id) FILTER (WHERE u.supervisor= false) AS empleados
+FROM area a
+JOIN sucursal s ON a.id_sucursal = s.id
+LEFT JOIN usuario u ON a.id = u.id_area
+GROUP BY a.id, s.id;
+
+-- PAQUETES Y SERVICIOS
+
+CREATE VIEW v_paquete_servicio WITH (security_invoker = true) AS
+SELECT
+	p.id, p.nombre, p.descripcion, p.precio,
+	COUNT(s.id) AS servicios
+FROM paquete p
+LEFT JOIN contenido_paquete c ON p.id = c.id_paquete
+LEFT JOIN servicio s ON c.id_servicio = s.id
+GROUP BY p.id;
+
+-- Permite filtrar servicios según el paquete al que pertenece
+CREATE VIEW v_contenido_paquete WITH (security_invoker = true) AS
+SELECT
+	s.id, s.nombre, s.descripcion, s.precio, p.id as paquete
+FROM contenido_paquete c
+LEFT JOIN servicio s ON c.id_servicio = s.id
+LEFT JOIN paquete p ON c.id_paquete = p.id;

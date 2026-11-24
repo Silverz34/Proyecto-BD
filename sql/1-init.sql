@@ -14,7 +14,7 @@ CREATE TABLE sucursal (
 CREATE TABLE area (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	id_sucursal UUID NOT NULL REFERENCES sucursal(id),
-	nombre VARCHAR(64) NOT NULL,
+	nombre VARCHAR(64) NOT NULL UNIQUE,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	UNIQUE (id_sucursal, nombre)
@@ -35,9 +35,9 @@ CREATE TABLE usuario (
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	CHECK (
-		(id_sucursal IS NULL AND id_area IS NULL AND supervisor IS NULL)
-		OR (id_sucursal IS NOT NULL AND id_area IS NULL AND supervisor IS NULL)
-		OR (id_sucursal IS NULL AND id_area IS NOT NULL AND supervisor IS NOT NULL)
+		(id_sucursal IS NULL AND id_area IS NULL AND supervisor IS NULL AND (id_rol=1 OR id_rol=4 OR id_rol=6))
+		OR (id_sucursal IS NOT NULL AND id_area IS NULL AND supervisor IS NULL AND id_rol=2)
+		OR (id_sucursal IS NULL AND id_area IS NOT NULL AND supervisor IS NOT NULL AND (id_rol=3 OR id_rol=5))
 	)
 );
 

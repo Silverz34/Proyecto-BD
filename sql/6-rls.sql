@@ -1,31 +1,42 @@
 
--- Devuelve el id del usuario de la petición, solo si está ACTIVO
-CREATE FUNCTION usuario_actual() RETURNS uuid
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+CREATE OR REPLACE FUNCTION usuario_actual() RETURNS uuid
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+SET row_level_security = off AS $$
 	SELECT id FROM usuario
-	WHERE id = NULLIF(current_setting('app.user_id', true), '')::uuid
-	  AND estado = 'ACTIVO'
+	WHERE id = (NULLIF(current_setting('app.user_id', true), ''))::uuid
+	  AND estado = 'ACTIVO';
 $$;
 
-CREATE FUNCTION sucursal_de_area(p_area uuid) RETURNS uuid
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-	SELECT id_sucursal FROM area WHERE id = p_area
+CREATE OR REPLACE FUNCTION sucursal_de_area(p_area uuid) RETURNS uuid
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+SET row_level_security = off AS $$
+	SELECT id_sucursal FROM area WHERE id = p_area;
 $$;
 
-CREATE FUNCTION sucursal_actual() RETURNS uuid
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+CREATE OR REPLACE FUNCTION sucursal_actual() RETURNS uuid
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+SET row_level_security = off AS $$
 	SELECT COALESCE(id_sucursal, sucursal_de_area(id_area))
-	FROM usuario WHERE id = usuario_actual()
+	FROM usuario WHERE id = (NULLIF(current_setting('app.user_id', true), ''))::uuid;
 $$;
 
-CREATE FUNCTION area_actual() RETURNS uuid
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-	SELECT id_area FROM usuario WHERE id = usuario_actual()
+CREATE OR REPLACE FUNCTION area_actual() RETURNS uuid
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+SET row_level_security = off AS $$
+	SELECT id_area FROM usuario
+    WHERE id = (NULLIF(current_setting('app.user_id', true), ''))::uuid;
 $$;
 
-CREATE FUNCTION es_supervisor() RETURNS boolean
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-	SELECT COALESCE((SELECT supervisor FROM usuario WHERE id = usuario_actual()), false)
+CREATE OR REPLACE FUNCTION es_supervisor() RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+SET row_level_security = off AS $$
+	SELECT COALESCE(supervisor, false)
+    FROM usuario WHERE id = (NULLIF(current_setting('app.user_id', true), ''))::uuid;
 $$;
 
 REVOKE EXECUTE ON FUNCTION usuario_actual(), sucursal_de_area(uuid), sucursal_actual(),
@@ -101,7 +112,6 @@ CREATE POLICY movimiento_sucursal ON movimiento_interno FOR SELECT
 CREATE POLICY movimiento_editar_contaduria ON movimiento_interno FOR UPDATE TO rol_contaduria
 	USING (sucursal_de_area(id_area) = sucursal_actual())
 	WITH CHECK (sucursal_de_area(id_area) = sucursal_actual());
-
 
 
 
